@@ -95,13 +95,13 @@
 
 <script>
   export default {
-    props: ['clients', 'saveBudget'],
+    props: ['clients', 'fixClientNameAndUpdate', 'selectedBudget'],
     data () {
       return {
         budget: {
           title: null,
           description: null,
-          state: 'writing',
+          state: 'pending',
           client: null,
           get total_price () {
             let value = 0
@@ -114,7 +114,7 @@
             {
               title: null,
               quantity: 0,
-              price: 0,
+              price: null,
               get subtotal () {
                 return this.quantity * this.price
               }
@@ -125,6 +125,9 @@
           'writing', 'editing', 'pending', 'approved', 'denied', 'waiting'
         ]
       }
+    },
+    mounted () {
+      this.parseBudget()
     },
     methods: {
       addItem () {
@@ -148,7 +151,107 @@
             items.splice(index, 1)
           }
         })
+      },
+
+      parseBudget () {
+        for (let key in this.selectedBudget) {
+          if (key !== 'total' && key !== 'items') {
+            this.budget[key] = this.selectedBudget[key]
+          }
+
+          if (key === 'items') {
+            const items = this.selectedBudget.items
+            const buildItems = item => ({
+              title: item.title,
+              quantity: item.quantity,
+              price: item.price,
+              get subtotal () {
+                return this.quantity * this.price
+              }
+            })
+            const parseItems = items => items.map(buildItems)
+            this.budget.items = parseItems(items)
+          }
+        }
       }
     }
   }
 </script>
+
+<style lang="scss">
+  @import "@/assets/styles.scss";
+
+  .uppercased {
+    text-transform: uppercase;
+  }
+
+  .l-budget-creation {
+    label, input, .icon, .input-group__selections__comma, textarea {
+      color: #29b6f6!important;
+    }
+
+    .input-group__details {
+      &:before {
+        background-color: $border-color-input !important;
+      }
+    }
+
+    .input-group__input {
+      border-color: $border-color-input !important;
+      .input-group--text-field__prefix {
+        margin-bottom: 3px !important;
+      }
+    }
+
+    .input-group--focused {
+      .input-group__input {
+        border-color: #29b6f6!important;
+      }
+    }
+  }
+
+  .md-budget-state-hint {
+    margin: 10px 0;
+    display: block;
+    width: 100%;
+  }
+
+  .md-budget-state {
+    background-color: rgba(41, 182, 246, .6);
+    display: flex;
+    height: 35px;
+    width: 100%;
+    font-size: 14px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    margin: 10px 0 15px;
+  }
+
+  .l-budget-item {
+    align-items: center;
+  }
+
+  .md-budget-item-subtotal {
+    font-size: 16px;
+    text-align: center;
+    display: block;
+  }
+
+  .md-budget-item-total {
+    font-size: 22px;
+    text-align: center;
+    display: block;
+    width: 100%;
+    margin: 30px 0 10px;
+  }
+
+  .md-add-item-btn {
+    margin-top: 30px !important;
+    display: block;
+  }
+  
+  .list__tile__title, .input-group__selections {
+    text-transform: uppercase !important;
+  }
+</style>
